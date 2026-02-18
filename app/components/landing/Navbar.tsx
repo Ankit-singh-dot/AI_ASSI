@@ -92,6 +92,18 @@ export default function Navbar() {
                 {/* CTA */}
                 <div className="hidden md:flex items-center gap-2">
                     <Link
+                        href="/dashboard"
+                        className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
+                        style={{
+                            color: scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)",
+                            transitionDuration: "0.3s",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)")}
+                    >
+                        Dashboard
+                    </Link>
+                    <Link
                         href="/login"
                         className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
                         style={{
@@ -154,13 +166,18 @@ export default function Navbar() {
                             {link.label}
                         </a>
                     ))}
-                    <div className="flex gap-3 mt-4">
-                        <Link href="/login" className="btn-ghost flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
-                            Sign in
+                    <div className="flex flex-col gap-3 mt-4">
+                        <Link href="/dashboard" className="btn-ghost flex justify-center w-full" style={{ padding: "8px", fontSize: "13px", border: "1px solid var(--border)", borderRadius: "8px" }}>
+                            Dashboard
                         </Link>
-                        <Link href="/signup" className="btn-primary flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
-                            Try for Free
-                        </Link>
+                        <div className="flex gap-3">
+                            <Link href="/login" className="btn-ghost flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
+                                Sign in
+                            </Link>
+                            <Link href="/signup" className="btn-primary flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
+                                Try for Free
+                            </Link>
+                        </div>
                     </div>
                 </div>
             )}
