@@ -15,11 +15,12 @@ import {
     Calendar,
     Zap,
     ChevronsUpDown,
-    Command,
     HelpCircle,
-    Plus
+    Sparkles,
+    FileText,
 } from "lucide-react";
 import { useState } from "react";
+import { useUser, UserButton } from "@clerk/nextjs";
 
 const navItems = [
     { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
@@ -27,6 +28,8 @@ const navItems = [
     { icon: MessageSquare, label: "Conversations", href: "/dashboard/conversations" },
     { icon: Calendar, label: "Calendar", href: "/dashboard/calendar" },
     { icon: Zap, label: "Automations", href: "/dashboard/automations" },
+    { icon: Sparkles, label: "Outreach", href: "/dashboard/outreach" },
+    { icon: FileText, label: "Templates", href: "/dashboard/templates" },
     { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
 ];
@@ -34,6 +37,14 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const [collapsed, setCollapsed] = useState(false);
     const pathname = usePathname();
+    const { user, isLoaded } = useUser();
+
+    const displayName = isLoaded && user
+        ? `${user.firstName || ""} ${user.lastName ? user.lastName.charAt(0) + "." : ""}`.trim() || "User"
+        : "Loading...";
+    const initials = isLoaded && user
+        ? `${(user.firstName || "U").charAt(0)}${(user.lastName || "").charAt(0)}`.toUpperCase()
+        : "..";
 
     return (
         <div className="flex h-screen overflow-hidden" style={{ background: "var(--bg-void)" }}>
@@ -59,7 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                         {!collapsed && (
                             <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium truncat text-white">FlowAI Inc.</div>
+                                <div className="text-sm font-medium truncate text-white">FlowAI Inc.</div>
                                 <div className="text-[11px] text-zinc-500 truncate">Free Plan</div>
                             </div>
                         )}
@@ -80,7 +91,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                 href={item.href}
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group relative overflow-hidden"
                             >
-                                {/* Active Background & Glow */}
                                 {isActive && (
                                     <div className="absolute inset-0 rounded-lg pointer-events-none" style={{ background: "var(--accent-soft)" }} />
                                 )}
@@ -100,7 +110,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                                     </span>
                                 )}
 
-                                {/* Hover effect for non-active items */}
                                 {!isActive && (
                                     <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-lg" />
                                 )}
@@ -109,7 +118,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     })}
                 </nav>
 
-                {/* Bottom Actions (Collapse + Help) */}
+                {/* Bottom Actions */}
                 <div className="p-3 border-t space-y-1" style={{ borderColor: "var(--border)" }}>
                     <button
                         className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors text-zinc-500 hover:text-zinc-300"
@@ -123,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col overflow-hidden relative z-10">
-                {/* Topbar — High-end Application Header */}
+                {/* Topbar */}
                 <header
                     className="h-16 flex-shrink-0 flex items-center justify-between px-8 transition-colors backdrop-blur-xl"
                     style={{
@@ -131,16 +140,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         borderBottom: "1px solid var(--border)"
                     }}
                 >
-                    {/* Breadcrumbs */}
                     <div className="flex items-center gap-2 text-sm">
                         <span className="text-zinc-500 font-medium">FlowAI</span>
                         <span className="text-zinc-700">/</span>
                         <span className="text-zinc-300 font-medium">Dashboard</span>
                     </div>
 
-                    {/* Right Actions */}
                     <div className="flex items-center gap-5">
-                        {/* Command Search */}
                         <div className="relative group hidden md:block">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search className="h-3.5 w-3.5 text-zinc-500 group-focus-within:text-zinc-400 transition-colors" />
@@ -155,36 +161,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             </div>
                         </div>
 
-                        {/* Separator */}
                         <div className="h-6 w-px bg-white/10" />
 
-                        {/* Notifications */}
                         <button className="relative p-2 rounded-full hover:bg-white/5 transition-colors text-zinc-400 hover:text-zinc-200">
                             <Bell className="w-4 h-4" />
                             <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-red-500 rounded-full border border-zinc-900" />
                         </button>
 
-                        {/* Help Trigger */}
                         <button className="p-2 rounded-full hover:bg-white/5 transition-colors text-zinc-400 hover:text-zinc-200">
                             <HelpCircle className="w-4 h-4" />
                         </button>
 
-                        {/* Profile Dropdown Trigger */}
-                        <button className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-white/5 transition-all group ml-1">
+                        {/* Dynamic User Profile */}
+                        <div className="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-white/5 transition-all group ml-1">
                             <div className="text-right hidden sm:block">
-                                <div className="text-[13px] font-medium text-zinc-200 group-hover:text-white transition-colors">Rahul S.</div>
+                                <div className="text-[13px] font-medium text-zinc-200 group-hover:text-white transition-colors">{displayName}</div>
                                 <div className="text-[10px] text-zinc-500">Admin</div>
                             </div>
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 p-[1px]">
-                                <div className="w-full h-full rounded-full bg-zinc-900 flex items-center justify-center text-xs font-semibold text-white">
-                                    RS
-                                </div>
-                            </div>
-                        </button>
+                            <UserButton
+                                appearance={{
+                                    elements: {
+                                        avatarBox: "w-8 h-8",
+                                    }
+                                }}
+                            />
+                        </div>
                     </div>
                 </header>
 
-                {/* Scrollable Page Content */}
                 <main className="flex-1 overflow-y-auto p-8 scroll-smooth" style={{ background: "var(--bg-void)" }}>
                     <div className="max-w-7xl mx-auto h-full">
                         {children}
