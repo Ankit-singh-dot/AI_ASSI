@@ -1,183 +1,76 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Zap, ArrowRight, Menu, X } from "lucide-react";
-
-const navLinks = [
-    { label: "Features", href: "#features" },
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "Testimonials", href: "#testimonials" },
-];
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
-    const [scrolled, setScrolled] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    useEffect(() => {
-        const onScroll = () => setScrolled(window.scrollY > 40);
-        window.addEventListener("scroll", onScroll);
-        return () => window.removeEventListener("scroll", onScroll);
-    }, []);
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center" style={{ padding: "16px 20px" }}>
-            <div
-                className="flex items-center justify-between w-full transition-all"
-                style={{
-                    maxWidth: scrolled ? "780px" : "1120px",
-                    padding: "10px 20px",
-                    borderRadius: scrolled ? "100px" : "16px",
-                    background: scrolled
-                        ? "linear-gradient(135deg, rgba(99,102,241,0.95), rgba(79,70,229,0.92))"
-                        : "rgba(99,102,241,0.08)",
-                    backdropFilter: "blur(24px)",
-                    WebkitBackdropFilter: "blur(24px)",
-                    border: scrolled
-                        ? "1px solid rgba(255,255,255,0.15)"
-                        : "1px solid rgba(99,102,241,0.15)",
-                    boxShadow: scrolled
-                        ? "0 8px 40px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.1)"
-                        : "none",
-                    transitionDuration: "0.5s",
-                    transitionTimingFunction: "cubic-bezier(0.25, 0.1, 0.25, 1)",
-                }}
-            >
-                {/* Logo */}
-                <Link href="/" className="flex items-center gap-2" style={{ textDecoration: "none" }}>
-                    <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center"
-                        style={{
-                            background: scrolled ? "rgba(255,255,255,0.2)" : "var(--accent)",
-                        }}
-                    >
-                        <Zap className="w-3.5 h-3.5 text-white" />
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                        <Link href="/" className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center">
+                                <span className="text-white font-bold text-xl leading-none tracking-tighter">AI</span>
+                            </div>
+                            <span className="text-white font-semibold text-lg tracking-tight">FlowAI</span>
+                        </Link>
                     </div>
-                    <span
-                        className="text-[14px] font-semibold tracking-tight"
-                        style={{ color: "white" }}
-                    >
-                        FlowAI
-                    </span>
-                </Link>
 
-                {/* Desktop nav */}
-                <div className="hidden md:flex items-center gap-1">
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.href}
-                            href={link.href}
-                            className="px-3 py-1.5 rounded-full text-[13px] font-medium transition-all"
-                            style={{
-                                color: scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)",
-                                transitionDuration: "0.3s",
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.color = "white";
-                                e.currentTarget.style.background = scrolled
-                                    ? "rgba(255,255,255,0.12)"
-                                    : "rgba(99,102,241,0.1)";
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.color = scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)";
-                                e.currentTarget.style.background = "transparent";
-                            }}
+                    {/* Desktop Menu */}
+                    <div className="hidden md:block">
+                        <div className="ml-10 flex items-baseline space-x-8">
+                            <Link href="#features" className="text-zinc-300 hover:text-white transition-colors text-sm font-medium">Features</Link>
+                            <Link href="#how-it-works" className="text-zinc-300 hover:text-white transition-colors text-sm font-medium">How it works</Link>
+                            <Link href="#pricing" className="text-zinc-300 hover:text-white transition-colors text-sm font-medium">Pricing</Link>
+                        </div>
+                    </div>
+
+                    {/* CTA Buttons */}
+                    <div className="hidden md:flex items-center gap-4">
+                        <Link href="/dashboard" className="text-zinc-300 hover:text-white transition-colors text-sm font-medium">
+                            Log in
+                        </Link>
+                        <Link href="/dashboard" className="bg-white text-black hover:bg-zinc-200 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                            Get Started
+                        </Link>
+                    </div>
+
+                    {/* Mobile menu button */}
+                    <div className="md:hidden flex items-center">
+                        <button
+                            onClick={toggleMobileMenu}
+                            className="inline-flex items-center justify-center p-2 rounded-md text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
                         >
-                            {link.label}
-                        </a>
-                    ))}
+                            {isMobileMenuOpen ? <X className="block w-6 h-6" /> : <Menu className="block w-6 h-6" />}
+                        </button>
+                    </div>
                 </div>
-
-                {/* CTA */}
-                <div className="hidden md:flex items-center gap-2">
-                    <Link
-                        href="/dashboard"
-                        className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
-                        style={{
-                            color: scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)",
-                            transitionDuration: "0.3s",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)")}
-                    >
-                        Dashboard
-                    </Link>
-                    <Link
-                        href="/login"
-                        className="text-[13px] font-medium px-3 py-1.5 rounded-full transition-colors"
-                        style={{
-                            color: scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)",
-                            transitionDuration: "0.3s",
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = scrolled ? "rgba(255,255,255,0.75)" : "var(--text-muted)")}
-                    >
-                        Sign in
-                    </Link>
-                    <Link
-                        href="/signup"
-                        className="flex items-center gap-1.5 text-[13px] font-medium px-4 py-2 rounded-full transition-all"
-                        style={{
-                            background: scrolled ? "rgba(0,0,0,0.35)" : "var(--accent)",
-                            color: "white",
-                            transitionDuration: "0.3s",
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = scrolled ? "rgba(0,0,0,0.5)" : "#4f46e5";
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = scrolled ? "rgba(0,0,0,0.35)" : "var(--accent)";
-                        }}
-                    >
-                        Try for Free
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                </div>
-
-                {/* Mobile toggle */}
-                <button
-                    className="md:hidden p-1.5 rounded-full"
-                    style={{ color: "white", background: "rgba(255,255,255,0.1)" }}
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                >
-                    {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-                </button>
             </div>
 
-            {/* Mobile menu */}
-            {mobileOpen && (
-                <div
-                    className="absolute top-full left-4 right-4 mt-2 p-4 rounded-2xl md:hidden"
-                    style={{
-                        background: "rgba(14, 14, 20, 0.95)",
-                        backdropFilter: "blur(20px)",
-                        border: "1px solid var(--border)",
-                    }}
-                >
-                    {navLinks.map((link) => (
-                        <a
-                            key={link.href}
-                            href={link.href}
-                            className="block py-3 text-sm"
-                            style={{ color: "var(--text-secondary)", borderBottom: "1px solid var(--border)" }}
-                            onClick={() => setMobileOpen(false)}
-                        >
-                            {link.label}
-                        </a>
-                    ))}
-                    <div className="flex flex-col gap-3 mt-4">
-                        <Link href="/dashboard" className="btn-ghost flex justify-center w-full" style={{ padding: "8px", fontSize: "13px", border: "1px solid var(--border)", borderRadius: "8px" }}>
-                            Dashboard
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden bg-black/90 border-b border-white/10 backdrop-blur-xl">
+                    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                        <Link href="#features" className="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-white/10">Features</Link>
+                        <Link href="#how-it-works" className="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-white/10">How it works</Link>
+                        <Link href="#pricing" className="block px-3 py-2 rounded-md text-base font-medium text-zinc-300 hover:text-white hover:bg-white/10">Pricing</Link>
+                    </div>
+                    <div className="px-4 py-4 border-t border-white/10 space-y-3">
+                        <Link href="/dashboard" className="block w-full text-center text-zinc-300 hover:text-white transition-colors font-medium">
+                            Log in
                         </Link>
-                        <div className="flex gap-3">
-                            <Link href="/login" className="btn-ghost flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
-                                Sign in
-                            </Link>
-                            <Link href="/signup" className="btn-primary flex-1 justify-center" style={{ padding: "8px", fontSize: "13px" }}>
-                                Try for Free
-                            </Link>
-                        </div>
+                        <Link href="/dashboard" className="block w-full text-center bg-white text-black hover:bg-zinc-200 px-4 py-2 rounded-lg font-semibold transition-colors">
+                            Get Started
+                        </Link>
                     </div>
                 </div>
             )}
