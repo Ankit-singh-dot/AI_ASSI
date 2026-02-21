@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String         @id @default(cuid())
+  clerkId       String         @unique
+  email         String         @unique
+  firstName     String?
+  lastName      String?
+  
+  // Settings
+  businessName  String?
+  industry      String?
+  businessHours String?
+  teamSize      String?
+  
+  // Notification Preferences
+  notifyNewLead      Boolean  @default(true)
+  notifyHotLead      Boolean  @default(true)
+  notifyNegative     Boolean  @default(true)
+  notifyFollowUps    Boolean  @default(false)
+  notifyAppointments Boolean  @default(true)
+  notifyWeeklyReport Boolean  @default(false)
+
+  theme            String   @default("system")
+  onboardingComplete Boolean @default(false)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  conversations Conversation[]
+  tasks         Task[]
+  activities    Activity[]
+  leads         Lead[]
+  appointments  Appointment[]
+  automations   Automation[]
+  integrations  Integration[]
+  quickReplies  QuickReply[]
+}
+
+model Lead {
+  id            String         @id @default(cuid())
+  userId        String
+  name          String
+  avatar        String?
+  email         String?
+  phone         String?
+  source        String         @default("manual")   // "whatsapp" | "email" | "website" | "manual"
+  status        String         @default("new")       // "new" | "contacted" | "qualified" | "converted" | "lost"
+  score         Int            @default(50)
+  sentiment     String         @default("neutral")   // "positive" | "neutral" | "negative"
+  tags          String[]       @default([])
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversations Conversation[]
+  appointments  Appointment[]
+}
+
+model Conversation {
+  id            String         @id @default(cuid())
+  userId        String
+  leadId        String
+  channel       String         // "whatsapp" | "email" | "web"
+  status        String         @default("Pending")
+  score         Int            @default(0)
+  sentiment     String         @default("neutral")
+  unreadCount   Int            @default(0)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lead          Lead           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  messages      Message[]
+}
+
+model Message {
+  id              String         @id @default(cuid())
+  conversationId  String
+  sender          String         // "customer" | "ai" | "agent"
+  text            String         @db.Text
+  sentiment       String?
+  
+  createdAt       DateTime       @default(now())
+
+  conversation    Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id            String         @id @default(cuid())
+  userId        String
+  title         String
+  description   String?
+  channel       String?
+  status        String?        @default("Pending")
+  
+  createdAt     DateTime       @default(now())
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id            String         @id @default(cuid())
+  userId        String
+  title         String
+  priority      String         @default("Medium")
+  dueDate       DateTime?
+  completed     Boolean        @default(false)
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Appointment {
+  id            String         @id @default(cuid())
+  userId        String
+  leadId        String?
+  title         String
+  type          String         @default("demo")     // "demo" | "intro" | "consultation" | "followup"
+  startTime     DateTime
+  endTime       DateTime
+  duration      String         @default("30 min")
+  meetingLink   String?
+  notes         String?
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lead          Lead?          @relation(fields: [leadId], references: [id], onDelete: SetNull)
+}
+
+model Automation {
+  id            String           @id @default(cuid())
+  userId        String
+  name          String
+  description   String?
+  trigger       String           // "New WhatsApp message" | "No response in 24h" | "Lead score > 80" etc.
+  action        String           // "AI Auto-response" | "Send Follow-up" | "Send Booking Link" etc.
+  active        Boolean          @default(true)
+  runs          Int              @default(0)
+  successRate   Int              @default(100)
+  icon          String           @default("Zap")
+  color         String           @default("#3b82f6")
+  
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  automationRuns AutomationRun[]
+}
+
+model AutomationRun {
+  id            String         @id @default(cuid())
+  automationId  String
+  success       Boolean        @default(true)
+  details       String?
+  
+  createdAt     DateTime       @default(now())
+
+  automation    Automation     @relation(fields: [automationId], references: [id], onDelete: Cascade)
+}
+
+model Integration {
+  id            String    @id @default(cuid())
+  userId        String
+  platform      String    // "whatsapp" | "instagram" | "gmail" | "calendar" | "website_forms"
+  status        String    @default("disconnected") // "connected" | "disconnected" | "error"
+  apiKey        String?   // Access token / API key
+  webhookUrl    String?   // Webhook endpoint for inbound
+  webhookSecret String?   // Secret for verifying webhook payloads
+  metadata      Json?     // Platform-specific config (email, calendarId, etc.)
+  connectedAt   DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform])
+}
+
+model QuickReply {
+  id            String    @id @default(cuid())
+  userId        String
+  title         String
+  body          String    @db.Text
+  category      String    @default("general") // "greeting" | "pricing" | "follow-up" | "closing" | "general"
+  usageCount    Int       @default(0)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
