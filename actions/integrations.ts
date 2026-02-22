@@ -12,16 +12,25 @@ const PLATFORMS = [
     { platform: "gmail", name: "Gmail", description: "Connect via Gmail API for email lead capture and outreach" },
     { platform: "calendar", name: "Google Calendar", description: "Sync appointments and availability with Google Calendar" },
     { platform: "website_forms", name: "Website Forms", description: "Capture leads from your website using a webhook endpoint" },
+    { platform: "make_webhook", name: "Make Automation (Campaigns)", description: "Send leads to a Make.com webhook for bulk emailing" },
+    { platform: "make_scraper_webhook", name: "Make Automation (Scraper)", description: "Trigger a Make.com Google Maps Scraper for Local Leads" },
 ];
 
 export async function getIntegrations() {
     const dbUser = await getDbUser();
 
-    // Seed defaults if first visit
-    const count = await prisma.integration.count({ where: { userId: dbUser.id } });
-    if (count === 0) {
+    // Fetch existing integrations
+    const existing = await prisma.integration.findMany({
+        where: { userId: dbUser.id },
+    });
+
+    // If there are new platforms added to the code that the user doesn't have yet, seed them
+    const existingPlatforms = new Set(existing.map(i => i.platform));
+    const missingPlatforms = PLATFORMS.filter(p => !existingPlatforms.has(p.platform));
+
+    if (missingPlatforms.length > 0) {
         await prisma.integration.createMany({
-            data: PLATFORMS.map((p) => ({
+            data: missingPlatforms.map((p) => ({
                 userId: dbUser.id,
                 platform: p.platform,
                 status: "disconnected",
@@ -201,6 +210,26 @@ export async function testIntegration(integrationId: string) {
 
         case "website_forms":
             return { success: true, message: `Webhook active ✓ — POST to /api/webhooks/ingest?platform=website_forms` };
+
+        case "make_webhook":
+        case "make_scraper_webhook": {
+            if (!integration.webhookUrl) return { success: false, message: "No Webhook URL provided" };
+            try {
+                // Ping the Make webhook to see if it responds
+                const res = await fetch(integration.webhookUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ ping: true, source: "FlowAI Test" }),
+                });
+                if (res.ok) {
+                    return { success: true, message: "Make.com Webhook is reachable ✓" };
+                } else {
+                    return { success: false, message: `Webhook responded with status: ${res.status}` };
+                }
+            } catch (e: any) {
+                return { success: false, message: `Webhook test failed: ${e.message}` };
+            }
+        }
 
         default:
             return { success: false, message: "Unknown platform" };
