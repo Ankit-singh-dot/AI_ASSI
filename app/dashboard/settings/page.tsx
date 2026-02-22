@@ -90,6 +90,26 @@ const platformMeta: Record<string, { name: string; icon: any; color: string; con
             { key: "webhookUrl", label: "Webhook URL (auto-generated)", placeholder: "" },
         ],
     },
+    make_webhook: {
+        name: "Make Automation (Campaigns)",
+        icon: ExternalLink,
+        color: "#9333ea",
+        connectedDesc: "Connected for bulk actions",
+        disconnectedDesc: "Send leads to a Make.com webhook",
+        fields: [
+            { key: "webhookUrl", label: "Make.com Webhook URL", placeholder: "https://hook.eu1.make.com/..." },
+        ],
+    },
+    make_scraper_webhook: {
+        name: "Make Automation (Scraper)",
+        icon: ExternalLink,
+        color: "#10b981", // Emerald to match scraper UI
+        connectedDesc: "Connected for local lead scraping",
+        disconnectedDesc: "Trigger a Make.com Google Maps Scraper",
+        fields: [
+            { key: "webhookUrl", label: "Make.com Scraper Webhook URL", placeholder: "https://hook.eu1.make.com/..." },
+        ],
+    },
 };
 
 export default function SettingsPage() {
