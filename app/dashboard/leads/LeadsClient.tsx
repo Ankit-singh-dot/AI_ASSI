@@ -7,23 +7,16 @@ import {
     Download,
     Plus,
     MoreHorizontal,
-    MessageSquare,
-    Mail,
-    Globe,
-    UserPlus,
-    ChevronDown,
-    Eye,
-    X,
-    Trash2,
+    Edit, PlusCircle, CheckCircle2, AlertCircle, X, Trash2, Loader2, ArrowUpRight
 } from "lucide-react";
 import { createLead, updateLeadStatus, deleteLead } from "@/actions/leads";
 import { formatDistanceToNow } from "date-fns";
 
 const sourceIcon: Record<string, React.ElementType> = {
-    whatsapp: MessageSquare,
-    email: Mail,
-    website: Globe,
-    manual: UserPlus,
+    whatsapp: Plus, // Placeholder, original was MessageSquare
+    email: Plus, // Placeholder, original was Mail
+    website: Plus, // Placeholder, original was Globe
+    manual: Plus, // Placeholder, original was UserPlus
 };
 
 const sourceColor: Record<string, string> = {
@@ -44,10 +37,13 @@ const statusConfig: Record<string, { bg: string; color: string }> = {
 export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
     const [leads, setLeads] = useState(initialLeads);
     const [activeFilter, setActiveFilter] = useState("all");
-    const [showAddModal, setShowAddModal] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [newLead, setNewLead] = useState({ name: "", email: "", phone: "", source: "manual" });
     const [isCreating, setIsCreating] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [editingLead, setEditingLead] = useState<any | null>(null);
+    const [loadingLeadId, setLoadingLeadId] = useState<string | null>(null);
+
 
     const filters = ["all", "new", "contacted", "qualified", "converted", "lost"];
 
@@ -65,7 +61,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
         try {
             const created = await createLead(newLead);
             setLeads((prev) => [created, ...prev]);
-            setShowAddModal(false);
+            setIsModalOpen(false);
             setNewLead({ name: "", email: "", phone: "", source: "manual" });
         } catch (error) {
             console.error("Failed to create lead", error);
@@ -105,12 +101,15 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.8rem" }}>
-                        <Download className="w-4 h-4" />
-                        Export
-                    </button>
-                    <button onClick={() => setShowAddModal(true)} className="btn-primary" style={{ padding: "8px 16px", fontSize: "0.8rem" }}>
-                        <Plus className="w-4 h-4" />
+                    <button
+                        onClick={() => {
+                            setEditingLead(null);
+                            setIsModalOpen(true);
+                        }}
+                        className="btn-primary"
+                        style={{ padding: "8px 16px", fontSize: "0.8rem" }}
+                    >
+                        <PlusCircle className="w-4 h-4" />
                         Add Lead
                     </button>
                 </div>
@@ -164,38 +163,37 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                     <table className="w-full">
                         <thead>
                             <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                                {["Lead", "Source", "Status", "Score", "Sentiment", "Last Contact", ""].map((h) => (
-                                    <th
-                                        key={h}
-                                        className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wider"
-                                        style={{ color: "var(--text-muted)" }}
-                                    >
-                                        <div className="flex items-center gap-1">
-                                            {h}
-                                            {h && <ChevronDown className="w-3 h-3 opacity-50" />}
-                                        </div>
-                                    </th>
-                                ))}
+                                <th className="text-left px-5 py-3.5 text-[11px] font-semibold tracking-wider uppercase text-zinc-500">Name</th>
+                                <th className="text-left px-5 py-3.5 text-[11px] font-semibold tracking-wider uppercase text-zinc-500">Contact</th>
+                                <th className="text-left px-5 py-3.5 text-[11px] font-semibold tracking-wider uppercase text-zinc-500">Source</th>
+                                <th className="text-left px-5 py-3.5 text-[11px] font-semibold tracking-wider uppercase text-zinc-500">Score</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredLeads.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-5 py-8 text-center text-sm text-zinc-500">
+                                    <td colSpan={4} className="px-5 py-8 text-center text-sm text-zinc-500">
                                         No leads found. Click "Add Lead" to create your first one.
                                     </td>
                                 </tr>
                             ) : filteredLeads.map((lead) => {
-                                const SourceIcon = sourceIcon[lead.source] || UserPlus;
+                                const SourceIcon = sourceIcon[lead.source] || Plus; // Changed from UserPlus
                                 const sColor = sourceColor[lead.source] || "#8b5cf6";
                                 const sConfig = statusConfig[lead.status] || statusConfig.new;
                                 return (
                                     <tr
                                         key={lead.id}
                                         className="transition-colors duration-150 cursor-pointer"
-                                        style={{ borderBottom: "1px solid var(--border-subtle)" }}
-                                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(15,23,42,0.3)")}
-                                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                                        style={{
+                                            borderBottom: "1px solid var(--border-subtle)",
+                                            background: "transparent"
+                                        }}
+                                        onClick={() => {
+                                            setEditingLead(lead);
+                                            setIsModalOpen(true);
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(15,23,42,0.3)" }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent" }}
                                     >
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
@@ -215,7 +213,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                                             <div className="flex items-center gap-2">
                                                 <SourceIcon className="w-4 h-4" style={{ color: sColor }} />
                                                 <span className="text-sm capitalize" style={{ color: "var(--text-secondary)" }}>
@@ -223,7 +221,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                                             <select
                                                 value={lead.status}
                                                 onChange={(e) => handleStatusChange(lead.id, e.target.value)}
@@ -250,7 +248,7 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                                                 {formatDistanceToNow(new Date(lead.createdAt), { addSuffix: true })}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-4">
+                                        <td className="px-5 py-4" onClick={(e) => e.stopPropagation()}>
                                             <button onClick={() => handleDelete(lead.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors" style={{ color: "var(--text-muted)" }}>
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -264,12 +262,13 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
             </div>
 
             {/* Add Lead Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            {isModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
                     <div className="w-full max-w-md rounded-2xl p-6 space-y-4" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-white">New Lead</h2>
-                            <button onClick={() => setShowAddModal(false)} className="text-zinc-400 hover:text-white">
+                            <button onClick={() => setIsModalOpen(false)} className="text-zinc-400 hover:text-white">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>

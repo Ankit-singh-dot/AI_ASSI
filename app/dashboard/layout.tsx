@@ -14,10 +14,11 @@ import {
     BarChart3,
     Calendar,
     Zap,
-    ChevronsUpDown,
     HelpCircle,
     Sparkles,
     FileText,
+    Megaphone,
+    ChevronsUpDown,
 } from "lucide-react";
 import { useState } from "react";
 import { useUser, UserButton } from "@clerk/nextjs";
@@ -29,6 +30,8 @@ const navItems = [
     { icon: Calendar, label: "Calendar", href: "/dashboard/calendar" },
     { icon: Zap, label: "Automations", href: "/dashboard/automations" },
     { icon: Sparkles, label: "Outreach", href: "/dashboard/outreach" },
+    { icon: Megaphone, label: "Campaigns", href: "/dashboard/campaigns" },
+    { icon: Search, label: "Local Scraper", href: "/dashboard/scraper" },
     { icon: FileText, label: "Templates", href: "/dashboard/templates" },
     { icon: BarChart3, label: "Analytics", href: "/dashboard/analytics" },
     { icon: Settings, label: "Settings", href: "/dashboard/settings" },
