@@ -55,7 +55,7 @@ export default function CTA() {
                     Ready to let AI{" "}
                     <span
                         style={{
-                            background: "linear-gradient(135deg, #f87171, #818cf8)",
+                            background: "linear-gradient(135deg, #ffffff, #888888)",
                             WebkitBackgroundClip: "text",
                             WebkitTextFillColor: "transparent",
                             backgroundClip: "text",
@@ -70,14 +70,14 @@ export default function CTA() {
                 <div className="mt-10">
                     <Link
                         href="/signup"
-                        className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-medium transition-all"
+                        className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold transition-all"
                         style={{
-                            background: "linear-gradient(135deg, #ef4444, #6366f1)",
-                            color: "white",
+                            background: "#ffffff",
+                            color: "#000000",
                             transitionDuration: "0.3s",
                         }}
                         onMouseEnter={(e) => {
-                            e.currentTarget.style.boxShadow = "0 6px 35px rgba(239,68,68,0.25)";
+                            e.currentTarget.style.boxShadow = "0 6px 35px rgba(255,255,255,0.15)";
                             e.currentTarget.style.transform = "translateY(-2px)";
                         }}
                         onMouseLeave={(e) => {
