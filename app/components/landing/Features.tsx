@@ -51,17 +51,8 @@ export default function Features() {
 
     return (
         <section id="features" ref={ref} className="section relative">
-            {/* Ambient */}
-            <div
-                className="ambient-glow animate-glow-pulse"
-                style={{
-                    width: "500px",
-                    height: "500px",
-                    top: "20%",
-                    left: "-10%",
-                    background: "radial-gradient(circle, rgba(99,102,241,0.05), transparent 70%)",
-                }}
-            />
+            {/* Sharp ambient structural line */}
+            <div className="absolute left-0 top-1/2 w-1 h-32 bg-white/10 -translate-y-1/2" />
 
             <div className="container-wide relative z-10">
                 {/* Header */}
@@ -85,22 +76,18 @@ export default function Features() {
 
                 {/* Grid */}
                 <div
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px"
-                    style={{ background: "var(--border)", borderRadius: "var(--radius-xl)", overflow: "hidden" }}
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10"
                 >
                     {features.map((f, i) => (
                         <div
                             key={f.title}
-                            className="p-8 md:p-10 transition-all"
+                            className="p-8 md:p-10 transition-all bg-void border-[0.5px] border-transparent hover:border-white/10"
                             style={{
                                 opacity: visible ? 1 : 0,
                                 transform: visible ? "translateY(0)" : "translateY(20px)",
                                 transitionDuration: "0.7s",
                                 transitionDelay: `${i * 80}ms`,
-                                background: "var(--bg-primary)",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-surface)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "var(--bg-primary)")}
                         >
                             <f.icon
                                 className="w-5 h-5 mb-5"
