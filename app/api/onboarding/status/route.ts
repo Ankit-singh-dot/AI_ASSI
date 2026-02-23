@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-/**
- * Internal API to check onboarding status.
- * Called from middleware (can't use Prisma directly in edge runtime).
- * GET /api/onboarding/status?clerkId=xxx
- */
+
 export async function GET(req: NextRequest) {
     // Verify this is an internal call
     const secret = req.headers.get("x-internal-secret");
@@ -24,7 +20,6 @@ export async function GET(req: NextRequest) {
             select: { onboardingComplete: true },
         });
 
-        // If user doesn't exist yet (webhook hasn't fired), let them through
         if (!user) {
             return NextResponse.json({ complete: true });
         }
