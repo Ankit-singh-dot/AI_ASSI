@@ -128,21 +128,24 @@ export async function testIntegration(integrationId: string) {
 
     switch (integration.platform) {
         case "gmail": {
-            if (!integration.apiKey) return { success: false, message: "No OAuth token provided" };
+            if (!integration.apiKey) return { success: false, message: "No App Password provided" };
             try {
-                // Test Gmail API — fetch user profile
-                const res = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
-                    headers: { Authorization: `Bearer ${integration.apiKey}` },
+                const { default: nodemailer } = await import("nodemailer");
+                const email = (integration.metadata as any)?.email;
+                if (!email) return { success: false, message: "No Gmail Address provided" };
+
+                const transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: email,
+                        pass: integration.apiKey,
+                    },
                 });
-                if (res.ok) {
-                    const data = await res.json();
-                    return { success: true, message: `Gmail connected ✓ — ${data.emailAddress} (${data.messagesTotal} emails)` };
-                } else {
-                    const err = await res.json().catch(() => ({}));
-                    return { success: false, message: `Gmail API error: ${err?.error?.message || res.statusText}` };
-                }
+
+                await transporter.verify();
+                return { success: true, message: `Gmail SMTP connected ✓ — ${email}` };
             } catch (e: any) {
-                return { success: false, message: `Gmail test failed: ${e.message}` };
+                return { success: false, message: `Gmail authentication failed: ${e.message}` };
             }
         }
 
