@@ -1,135 +1,156 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+import { getDbUser } from "@/lib/user";
 import { revalidatePath } from "next/cache";
-import { analyzeLeadMessage, generateAutoResponse } from "@/lib/ai/gemini";
+import { analyzeLeadScore } from "./ai-score";
 
 export async function getConversations() {
-    const user = await currentUser();
-    if (!user) throw new Error("Unauthorized");
-
-    const dbUser = await prisma.user.findUnique({
-        where: { clerkId: user.id },
-    });
-
-    if (!dbUser) throw new Error("User not found in database");
+    const dbUser = await getDbUser();
 
     return prisma.conversation.findMany({
         where: { userId: dbUser.id },
         include: {
             lead: true,
             messages: {
-                orderBy: { createdAt: "asc" },
-            },
+                orderBy: { createdAt: "desc" },
+                take: 1, // Get the last message for the preview
+            }
         },
         orderBy: { updatedAt: "desc" },
     });
 }
 
-export async function sendMessage(conversationId: string, text: string, sender: "agent" | "ai" = "agent") {
-    const user = await currentUser();
-    if (!user) throw new Error("Unauthorized");
+export async function getConversation(conversationId: string) {
+    const dbUser = await getDbUser();
 
-    const message = await prisma.message.create({
-        data: {
-            conversationId,
-            text,
-            sender,
-        },
+    // Mark as read
+    await prisma.conversation.updateMany({
+        where: { id: conversationId, userId: dbUser.id },
+        data: { unreadCount: 0 }
     });
 
-    await prisma.conversation.update({
-        where: { id: conversationId },
-        data: { updatedAt: new Date() },
+    return prisma.conversation.findFirst({
+        where: { id: conversationId, userId: dbUser.id },
+        include: {
+            lead: true,
+            messages: {
+                orderBy: { createdAt: "asc" }
+            }
+        }
     });
-
-    revalidatePath("/dashboard/conversations");
-    return message;
 }
 
-/**
- * Simulates receiving a message from a customer.
- * This triggers the AI pipeline:
- * 1. Store the customer message.
- * 2. Analyze intent and sentiment.
- * 3. Update Conversation score/sentiment.
- * 4. Generate AI auto-response if applicable.
- */
-export async function simulateCustomerMessage(conversationId: string, text: string) {
-    const user = await currentUser();
-    if (!user) throw new Error("Unauthorized");
+export async function sendReply(conversationId: string, text: string) {
+    const dbUser = await getDbUser();
 
-    const dbUser = await prisma.user.findUnique({
-        where: { clerkId: user.id },
-    });
-
-    if (!dbUser) throw new Error("User not found in database");
-
-    const conversation = await prisma.conversation.findUnique({
-        where: { id: conversationId },
-        include: {
-            messages: true,
-        },
+    const conversation = await prisma.conversation.findFirst({
+        where: { id: conversationId, userId: dbUser.id },
+        include: { lead: true }
     });
 
     if (!conversation) throw new Error("Conversation not found");
 
-    // 1. Save Customer Message
-    await prisma.message.create({
+    // 1. Save message to DB
+    const message = await prisma.message.create({
         data: {
             conversationId,
+            sender: "agent",
             text,
-            sender: "customer",
-        },
+        }
     });
 
-    // 2. Analyze Lead Message
-    const analysis = await analyzeLeadMessage(text);
-
-    // 3. Update Conversation with AI Analysis
+    // Update conversation timestamp
     await prisma.conversation.update({
         where: { id: conversationId },
-        data: {
-            sentiment: analysis.sentiment,
-            score: analysis.leadScore,
-            unreadCount: conversation.unreadCount + 1,
-            updatedAt: new Date(),
-        },
+        data: { updatedAt: new Date(), status: "Replied" }
     });
 
-    // Revalidate to show customer message immediately
+    // 2. Transmit via actual API 
+    try {
+        if (conversation.channel === "whatsapp") {
+            // Find whatsapp integration
+            const integration = await prisma.integration.findFirst({
+                where: { userId: dbUser.id, platform: "whatsapp", status: "connected" }
+            });
+
+            if (integration && integration.apiKey) {
+                const meta = integration.metadata as any;
+                const phoneId = meta?.phoneNumberId;
+
+                if (phoneId) {
+                    const apiRes = await fetch(`https://graph.facebook.com/v22.0/${phoneId}/messages`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${integration.apiKey}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            messaging_product: "whatsapp",
+                            recipient_type: "individual",
+                            to: conversation.lead.phone, // Assuming leads.phone has the user's WA ID
+                            type: "text",
+                            text: { body: text }
+                        })
+                    });
+
+                    const data = await apiRes.json();
+                    if (!apiRes.ok) {
+                        console.error("WhatsApp API Error:", data);
+                        throw new Error(data.error?.message || "WhatsApp API rejected the message.");
+                    }
+                } else {
+                    throw new Error("Phone Number ID missing from configuration.");
+                }
+            } else {
+                throw new Error("WhatsApp integration not configured or missing API key.");
+            }
+        } else if (conversation.channel === "instagram") {
+            const integration = await prisma.integration.findFirst({
+                where: { userId: dbUser.id, platform: "instagram", status: "connected" }
+            });
+
+            if (integration && integration.apiKey) {
+                const meta = integration.metadata as any;
+                const pageId = meta?.pageId;
+
+                if (pageId) {
+                    const apiRes = await fetch(`https://graph.facebook.com/v22.0/${pageId}/messages`, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${integration.apiKey}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            recipient: { id: conversation.lead.phone }, // Assuming leads.phone contains the IG Scoped ID
+                            message: { text: text }
+                        })
+                    });
+
+                    const data = await apiRes.json();
+                    if (!apiRes.ok) {
+                        console.error("Instagram API Error:", data);
+                        throw new Error(data.error?.message || "Instagram API rejected the message.");
+                    }
+                } else {
+                    throw new Error("Page ID missing from configuration.");
+                }
+            } else {
+                throw new Error("Instagram integration not configured or missing API key.");
+            }
+        }
+    } catch (e: any) {
+        console.error("Failed to transmit message", e);
+        // Rollback the message creation if API failed
+        await prisma.message.delete({ where: { id: message.id } });
+        throw new Error(e.message || "Failed to send message via platform API");
+    }
+
+    // --- 3. Async AI Scoring Update --- //
+    analyzeLeadScore(conversation.id, dbUser.id).catch(err => {
+        console.error("Async AI Scoring failed:", err);
+    });
+
     revalidatePath("/dashboard/conversations");
-
-    // 4. Generate Auto Response asynchronously (or await it depending on UX needs)
-    // Here we wait for it so the UI can refresh with the AI response
-    const history = conversation.messages.map((m) => ({
-        role: m.sender,
-        content: m.text,
-    }));
-
-    const aiResponseText = await generateAutoResponse(dbUser, history, text);
-
-    await prisma.message.create({
-        data: {
-            conversationId,
-            text: aiResponseText,
-            sender: "ai",
-            sentiment: "neutral", // AI is usually neutral
-        },
-    });
-
-    // Optionally log the activity
-    await prisma.activity.create({
-        data: {
-            userId: dbUser.id,
-            title: "AI Auto-replied",
-            channel: conversation.channel,
-            status: "Replied",
-            description: `Intent detected: ${analysis.intent}`,
-        },
-    });
-
-    revalidatePath("/dashboard/conversations");
-    revalidatePath("/dashboard");
+    return message;
 }
