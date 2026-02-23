@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import FloatingAssistant from "./components/landing/FloatingAssistant";
 
 export const metadata: Metadata = {
   title: "FlowAI — AI Employee for Indian SMEs | Automate Leads, Follow-ups & Bookings",
@@ -30,6 +31,7 @@ export default function RootLayout({
         </head>
         <body className="antialiased">
           {children}
+          <FloatingAssistant />
         </body>
       </html>
     </ClerkProvider>
