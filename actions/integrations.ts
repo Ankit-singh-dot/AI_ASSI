@@ -51,15 +51,24 @@ export async function connectIntegration(
 ) {
     const dbUser = await getDbUser();
 
+    // Build update data — only overwrite fields that were actually provided
+    const updateData: Record<string, any> = {
+        status: "connected",
+        connectedAt: new Date(),
+    };
+    if (config.apiKey !== undefined && config.apiKey !== "") {
+        updateData.apiKey = config.apiKey;
+    }
+    if (config.webhookUrl !== undefined && config.webhookUrl !== "") {
+        updateData.webhookUrl = config.webhookUrl;
+    }
+    if (config.metadata && Object.keys(config.metadata).length > 0) {
+        updateData.metadata = config.metadata;
+    }
+
     const integration = await prisma.integration.upsert({
         where: { userId_platform: { userId: dbUser.id, platform } },
-        update: {
-            status: "connected",
-            apiKey: config.apiKey || null,
-            webhookUrl: config.webhookUrl || null,
-            metadata: config.metadata || undefined,
-            connectedAt: new Date(),
-        },
+        update: updateData,
         create: {
             userId: dbUser.id,
             platform,
