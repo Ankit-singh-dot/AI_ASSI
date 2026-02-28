@@ -11,34 +11,42 @@ export default function FloatingAssistant() {
     ]);
     const [input, setInput] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
     const suggestedQuestions = [
         { icon: <Variable className="w-4 h-4" />, text: "How do I use variables?" },
         { icon: <Sheet className="w-4 h-4" />, text: "How to add a Google Sheet?" },
         { icon: <ArrowRight className="w-4 h-4" />, text: "What's the next step to proceed?" },
     ];
 
-    const handleSend = (text: string) => {
-        if (!text.trim()) return;
+    const handleSend = async (text: string) => {
+        if (!text.trim() || isLoading) return;
 
         // Add user message
-        setMessages(prev => [...prev, { role: 'user', text }]);
+        const newMessages = [...messages, { role: 'user', text }];
+        setMessages(newMessages);
         setInput("");
+        setIsLoading(true);
 
-        // Simulate AI response based on keywords
-        setTimeout(() => {
-            let response = "I'm here to help! To get started, sign up for a free trial and connect your first channel.";
+        try {
+            const res = await fetch("/api/v1/ai/assistant", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: newMessages }),
+            });
 
-            const lowerText = text.toLowerCase();
-            if (lowerText.includes("variable") || lowerText.includes("paste")) {
-                response = "To use variables, simply wrap your header names from your Google Sheet in double curly braces, like {{FirstName}}. When you draft a message, the AI will automatically pull the data for each specific lead!";
-            } else if (lowerText.includes("sheet") || lowerText.includes("link")) {
-                response = "Adding a sheet is easy! Go to your Dashboard -> Campaigns -> Create New. You'll see an option to 'Import from Google Sheets'. Just paste your public Google Sheet link there, and we'll sync your leads instantly.";
-            } else if (lowerText.includes("proceed") || lowerText.includes("next step") || lowerText.includes("start")) {
-                response = "The best way to proceed is to click 'Get Started' or 'Start Free Trial' on this page, create your account, and follow our quick onboarding tutorial to set up your first AI agent.";
+            if (!res.ok) {
+                throw new Error("Failed to connect to AI");
             }
 
-            setMessages(prev => [...prev, { role: 'assistant', text: response }]);
-        }, 600);
+            const data = await res.json();
+            setMessages(prev => [...prev, { role: 'assistant', text: data.reply }]);
+        } catch (error) {
+            console.error(error);
+            setMessages(prev => [...prev, { role: 'assistant', text: "Sorry, I'm having trouble connecting right now. Please try again later." }]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -85,8 +93,8 @@ export default function FloatingAssistant() {
                                 >
                                     <div
                                         className={`max-w-[85%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${msg.role === 'user'
-                                                ? 'bg-white text-black rounded-br-sm'
-                                                : 'bg-white/10 text-white rounded-bl-sm border border-white/5'
+                                            ? 'bg-white text-black rounded-br-sm'
+                                            : 'bg-white/10 text-white rounded-bl-sm border border-white/5'
                                             }`}
                                     >
                                         {msg.text}
@@ -131,11 +139,15 @@ export default function FloatingAssistant() {
                                 />
                                 <button
                                     onClick={() => handleSend(input)}
-                                    className={`absolute right-1.5 p-2 rounded-full transition-all ${input.trim() ? 'bg-white text-black hover:scale-105' : 'bg-transparent text-zinc-600'
+                                    className={`absolute right-1.5 p-2 rounded-full transition-all ${input.trim() || isLoading ? 'bg-white text-black hover:scale-105' : 'bg-transparent text-zinc-600'
                                         }`}
-                                    disabled={!input.trim()}
+                                    disabled={!input.trim() || isLoading}
                                 >
-                                    <Send className="w-4 h-4" />
+                                    {isLoading ? (
+                                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <Send className="w-4 h-4" />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -157,6 +169,6 @@ export default function FloatingAssistant() {
                     <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 border-2 border-black rounded-full animate-bounce"></span>
                 )}
             </motion.button>
-        </div>
+        </div >
     );
 }
