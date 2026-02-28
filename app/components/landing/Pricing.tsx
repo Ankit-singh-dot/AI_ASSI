@@ -67,7 +67,7 @@ export default function Pricing() {
 
     return (
         <section id="pricing" ref={sectionRef} className="relative overflow-hidden" style={{ padding: "140px 0" }}>
-            {/* ✦ RED AMBIENT GLOW — large, fading, dramatic */}
+            {/* ✦ AMBIENT GLOW — large, fading, dramatic */}
             <div
                 className="absolute inset-0 pointer-events-none transition-opacity"
                 style={{
@@ -76,7 +76,7 @@ export default function Pricing() {
                     transitionTimingFunction: "ease-out",
                 }}
             >
-                {/* Main red bloom */}
+                {/* Main bloom */}
                 <div
                     className="absolute animate-glow-pulse"
                     style={{
@@ -84,7 +84,7 @@ export default function Pricing() {
                         height: "800px",
                         top: "-10%",
                         left: "0",
-                        background: "radial-gradient(ellipse 80% 60% at 50% 20%, rgba(239,68,68,0.08), rgba(239,68,68,0.03) 40%, transparent 70%)",
+                        background: "radial-gradient(ellipse 80% 60% at 50% 20%, rgba(255,255,255,0.03), rgba(255,255,255,0.01) 40%, transparent 70%)",
                     }}
                 />
                 {/* Side bleed — left */}
@@ -97,10 +97,10 @@ export default function Pricing() {
                         left: "-5%",
                         borderRadius: "50%",
                         filter: "blur(100px)",
-                        background: "rgba(239,68,68,0.05)",
+                        background: "rgba(255,255,255,0.02)",
                     }}
                 />
-                {/* Side bleed — right indigo */}
+                {/* Side bleed — right */}
                 <div
                     className="absolute"
                     style={{
@@ -110,7 +110,7 @@ export default function Pricing() {
                         right: "-5%",
                         borderRadius: "50%",
                         filter: "blur(100px)",
-                        background: "rgba(99,102,241,0.04)",
+                        background: "rgba(255,255,255,0.015)",
                     }}
                 />
             </div>
@@ -136,7 +136,7 @@ export default function Pricing() {
                         Simple.{" "}
                         <span
                             style={{
-                                background: "linear-gradient(135deg, #ef4444, #6366f1)",
+                                background: "linear-gradient(135deg, #ffffff, #a1a1aa)",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
                                 backgroundClip: "text",
@@ -184,12 +184,12 @@ export default function Pricing() {
                                     <span
                                         className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-medium mb-3"
                                         style={{
-                                            background: "rgba(239,68,68,0.1)",
-                                            color: "#f87171",
-                                            border: "1px solid rgba(239,68,68,0.15)",
+                                            background: "rgba(255,255,255,0.1)",
+                                            color: "#ffffff",
+                                            border: "1px solid rgba(255,255,255,0.15)",
                                         }}
                                     >
-                                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#ef4444" }} />
+                                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#ffffff" }} />
                                         Most Popular
                                     </span>
                                 )}
@@ -218,10 +218,10 @@ export default function Pricing() {
                                 className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-xl text-[13px] font-medium transition-all mb-6"
                                 style={{
                                     background: tier.highlighted
-                                        ? "linear-gradient(135deg, #ef4444, #6366f1)"
+                                        ? "#ffffff"
                                         : "transparent",
                                     border: tier.highlighted ? "none" : "1px solid var(--border)",
-                                    color: tier.highlighted ? "white" : "var(--text-secondary)",
+                                    color: tier.highlighted ? "#000000" : "var(--text-secondary)",
                                     transitionDuration: "0.3s",
                                 }}
                                 onMouseEnter={(e) => {
@@ -229,7 +229,7 @@ export default function Pricing() {
                                         e.currentTarget.style.borderColor = "var(--border-hover)";
                                         e.currentTarget.style.background = "var(--bg-glass)";
                                     } else {
-                                        e.currentTarget.style.boxShadow = "0 4px 25px rgba(239,68,68,0.3)";
+                                        e.currentTarget.style.boxShadow = "0 4px 25px rgba(255,255,255,0.15)";
                                     }
                                 }}
                                 onMouseLeave={(e) => {
@@ -250,7 +250,7 @@ export default function Pricing() {
                                     <li key={f} className="flex items-start gap-2.5">
                                         <Check
                                             className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
-                                            style={{ color: tier.highlighted ? "#f87171" : "var(--text-muted)" }}
+                                            style={{ color: tier.highlighted ? "#ffffff" : "var(--text-muted)" }}
                                             strokeWidth={2}
                                         />
                                         <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{f}</span>
