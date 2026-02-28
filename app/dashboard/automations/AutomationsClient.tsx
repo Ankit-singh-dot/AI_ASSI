@@ -5,7 +5,7 @@ import { Plus, Zap, Clock, MessageSquare, Mail, Calendar, MoreHorizontal, ArrowR
 import { toggleAutomation, deleteAutomation, createAutomation } from "@/actions/automations";
 import { formatDistanceToNow } from "date-fns";
 
-const iconMap: Record<string, React.ElementType> = {
+const iconMap: Record<string, any> = {
     MessageSquare,
     Clock,
     Calendar,
@@ -99,7 +99,7 @@ export default function AutomationsClient({ initialAutomations }: { initialAutom
                                         className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                                         style={{ background: `${auto.color}15` }}
                                     >
-                                        <IconComp className="w-5 h-5" style={{ color: auto.color }} />
+                                        <IconComp className="w-5 h-5" color={auto.color} />
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-semibold mb-1" style={{ color: "var(--text-primary)" }}>
