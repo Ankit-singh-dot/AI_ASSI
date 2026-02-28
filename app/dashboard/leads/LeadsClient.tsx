@@ -12,7 +12,7 @@ import {
 import { createLead, updateLeadStatus, deleteLead } from "@/actions/leads";
 import { formatDistanceToNow } from "date-fns";
 
-const sourceIcon: Record<string, React.ElementType> = {
+const sourceIcon: Record<string, any> = {
     whatsapp: Plus, // Placeholder, original was MessageSquare
     email: Plus, // Placeholder, original was Mail
     website: Plus, // Placeholder, original was Globe
@@ -63,8 +63,9 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
             setLeads((prev) => [created, ...prev]);
             setIsModalOpen(false);
             setNewLead({ name: "", email: "", phone: "", source: "manual" });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to create lead", error);
+            alert("Error creating lead: " + (error?.message || String(error)));
         } finally {
             setIsCreating(false);
         }

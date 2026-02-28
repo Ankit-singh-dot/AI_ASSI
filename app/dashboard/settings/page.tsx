@@ -62,10 +62,10 @@ const platformMeta: Record<string, { name: string; icon: any; color: string; con
         name: "Gmail",
         icon: Mail,
         color: "#EA4335",
-        connectedDesc: "OAuth connected",
+        connectedDesc: "SMTP connected",
         disconnectedDesc: "Connect your Gmail account for email outreach",
         fields: [
-            { key: "apiKey", label: "OAuth Refresh Token", placeholder: "1//0xxxxxxx..." },
+            { key: "apiKey", label: "App Password (16 chars)", placeholder: "abcd efgh ijkl mnop" },
             { key: "email", label: "Gmail Address", placeholder: "you@company.com", type: "email" },
         ],
     },
@@ -346,7 +346,7 @@ export default function SettingsPage() {
                                     const emailMeta = (integ.metadata as any)?.email;
                                     let description = isConnected ? meta.connectedDesc : meta.disconnectedDesc;
                                     if (isConnected && integ.platform === "gmail" && emailMeta) {
-                                        description = `OAuth connected — ${emailMeta}`;
+                                        description = `SMTP connected — ${emailMeta}`;
                                     }
 
                                     return (
@@ -376,7 +376,19 @@ export default function SettingsPage() {
                                                     <>
                                                         <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider" style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>Connected</span>
                                                         <button
-                                                            onClick={() => { setConnectModal(integ.platform); setConnectForm({}); setTestResult(null); }}
+                                                            onClick={() => {
+                                                                setConnectModal(integ.platform);
+                                                                const existing: Record<string, string> = {};
+                                                                if (integ.apiKey) existing.apiKey = integ.apiKey;
+                                                                if (integ.webhookUrl) existing.webhookUrl = integ.webhookUrl;
+                                                                if (integ.metadata && typeof integ.metadata === 'object') {
+                                                                    Object.entries(integ.metadata as Record<string, any>).forEach(([k, v]) => {
+                                                                        if (typeof v === 'string') existing[k] = v;
+                                                                    });
+                                                                }
+                                                                setConnectForm(existing);
+                                                                setTestResult(null);
+                                                            }}
                                                             className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors hover:bg-white/5"
                                                             style={{ color: "var(--text-muted)", border: "1px solid var(--border-subtle)" }}
                                                         >Configure</button>
@@ -390,7 +402,19 @@ export default function SettingsPage() {
                                                     <>
                                                         <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider" style={{ background: "rgba(239,68,68,0.08)", color: "#ef4444" }}>Disconnected</span>
                                                         <button
-                                                            onClick={() => { setConnectModal(integ.platform); setConnectForm({}); setTestResult(null); }}
+                                                            onClick={() => {
+                                                                setConnectModal(integ.platform);
+                                                                const existing: Record<string, string> = {};
+                                                                if (integ.apiKey) existing.apiKey = integ.apiKey;
+                                                                if (integ.webhookUrl) existing.webhookUrl = integ.webhookUrl;
+                                                                if (integ.metadata && typeof integ.metadata === 'object') {
+                                                                    Object.entries(integ.metadata as Record<string, any>).forEach(([k, v]) => {
+                                                                        if (typeof v === 'string') existing[k] = v;
+                                                                    });
+                                                                }
+                                                                setConnectForm(existing);
+                                                                setTestResult(null);
+                                                            }}
                                                             className="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors hover:bg-blue-500/10"
                                                             style={{ color: "var(--accent-blue)", border: "1px solid rgba(59,130,246,0.2)" }}
                                                         >Connect</button>
