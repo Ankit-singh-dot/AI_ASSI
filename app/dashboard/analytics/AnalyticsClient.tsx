@@ -119,7 +119,6 @@ export default function AnalyticsClient({ data }: { data: any }) {
                     )}
                 </div>
 
-                {/* Lead Sources Pie */}
                 <div className="glass-card-static p-5">
                     <h3 className="text-sm font-semibold mb-5" style={{ color: "var(--text-primary)" }}>
                         Lead Sources
