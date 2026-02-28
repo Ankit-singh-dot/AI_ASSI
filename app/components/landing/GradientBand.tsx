@@ -76,7 +76,7 @@ export default function GradientBand() {
                     className="text-4xl md:text-5xl font-semibold leading-tight"
                     style={{
                         letterSpacing: "-0.03em",
-                        background: "linear-gradient(135deg, #f87171, #818cf8, #f87171)",
+                        background: "linear-gradient(135deg, #ffffff, #a1a1aa, #ffffff)",
                         backgroundSize: "200% auto",
                         WebkitBackgroundClip: "text",
                         WebkitTextFillColor: "transparent",
