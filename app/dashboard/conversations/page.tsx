@@ -1,50 +1,29 @@
 import { getConversations } from "@/actions/conversations";
-import ConversationsClient from "./Client";
+import ConversationsClient from "./ConversationsClient";
+import { getDbUser } from "@/lib/user";
 import { prisma } from "@/lib/prisma";
-import { currentUser } from "@clerk/nextjs/server";
+
+export const metadata = {
+    title: "Conversations | FlowAI",
+};
 
 export default async function ConversationsPage() {
-    let conversations: any[] = [];
-    try {
-        conversations = await getConversations();
+    const user = await getDbUser();
 
-        // Seed some demo data if empty
-        if (conversations.length === 0) {
-            const user = await currentUser();
-            if (user) {
-                const dbUser = await prisma.user.findUnique({ where: { clerkId: user.id } });
-                if (dbUser) {
-                    const lead = await prisma.lead.create({
-                        data: {
-                            userId: dbUser.id,
-                            name: "Demo Customer",
-                            email: "demo@example.com",
-                            phone: "+1234567890"
-                        }
-                    });
-                    await prisma.conversation.create({
-                        data: {
-                            userId: dbUser.id,
-                            leadId: lead.id,
-                            channel: "whatsapp",
-                            messages: {
-                                create: {
-                                    sender: "customer",
-                                    text: "Hi! How does your product work?"
-                                }
-                            }
-                        }
-                    });
-                    // Re-fetch
-                    conversations = await getConversations();
-                }
-            }
-        }
-    } catch (error) {
-        console.error("Failed to load conversations:", error);
-    }
+    // We also might want to pass quick replies to the client
+    const quickReplies = await prisma.quickReply.findMany({
+        where: { userId: user.id },
+        orderBy: { usageCount: "desc" }
+    });
+
+    const conversations = await getConversations();
 
     return (
-        <ConversationsClient initialConversations={conversations} />
+        <main className="flex-1 overflow-hidden bg-black/40 h-full">
+            <ConversationsClient
+                initialConversations={conversations}
+                quickReplies={quickReplies}
+            />
+        </main>
     );
 }
