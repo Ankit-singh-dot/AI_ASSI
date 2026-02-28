@@ -192,8 +192,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                 </header>
 
-                <main className="flex-1 overflow-y-auto p-8 scroll-smooth" style={{ background: "var(--bg-void)" }}>
-                    <div className="max-w-7xl mx-auto h-full">
+                <main className={`flex-1 overflow-y-auto scroll-smooth ${pathname === '/dashboard/conversations' ? '' : 'p-8'}`} style={{ background: "var(--bg-void)" }}>
+                    <div className={`h-full ${pathname === '/dashboard/conversations' ? 'w-full' : 'max-w-7xl mx-auto'}`}>
                         {children}
                     </div>
                 </main>
