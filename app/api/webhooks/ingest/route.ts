@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { analyzeLeadScore } from "@/actions/ai-score";
+import { initChatbotFlow, handleChatbotResponse } from "@/actions/chatbot";
 
 // Meta Webhook Verification (required when setting up the webhook in Meta Developer Portal)
 export async function GET(req: Request) {
@@ -70,7 +71,20 @@ export async function POST(req: Request) {
 
             senderContact = message.from; // Phone number
             senderName = contact?.profile?.name || senderContact;
-            messageText = message.text?.body || "[Media/Interactive Content]";
+
+            // Parse message text — handle text, interactive buttons, and list replies
+            if (message.type === "interactive") {
+                // Interactive button/list reply
+                messageText = message.interactive?.button_reply?.id
+                    || message.interactive?.button_reply?.title
+                    || message.interactive?.list_reply?.id
+                    || message.interactive?.list_reply?.title
+                    || "[Interactive Reply]";
+            } else if (message.type === "text") {
+                messageText = message.text?.body || "";
+            } else {
+                messageText = message.text?.body || `[${message.type || "Media"} Content]`;
+            }
 
             const phoneNumberId = value.metadata?.phone_number_id;
 
@@ -151,6 +165,7 @@ export async function POST(req: Request) {
         }
 
         // --- 3. Auto-Create Conversation --- //
+        let isNewConversation = false;
         let conversation = await prisma.conversation.findFirst({
             where: {
                 userId,
@@ -168,6 +183,7 @@ export async function POST(req: Request) {
                     status: "Active"
                 }
             });
+            isNewConversation = true;
         }
 
         // Update conversation unread count
@@ -188,7 +204,26 @@ export async function POST(req: Request) {
             }
         });
 
-        // --- 5. Async AI Scoring Update --- //
+        // --- 5. AI Chatbot Auto-Response --- //
+        // Re-fetch conversation to get fresh botPhase (it may have been updated by initChatbotFlow)
+        const freshConversation = await prisma.conversation.findFirst({
+            where: { id: conversation.id },
+        });
+        const botPhase = (freshConversation as any)?.botPhase || "none";
+
+        if (isNewConversation) {
+            // New conversation — start the chatbot flow with language selection
+            initChatbotFlow(conversation.id, userId, platform!).catch(err => {
+                console.error("Chatbot init failed:", err);
+            });
+        } else if (botPhase === "language_select" || botPhase === "ai_chat") {
+            // Existing conversation in active bot phase — trigger AI response
+            handleChatbotResponse(conversation.id, userId, messageText, platform!).catch(err => {
+                console.error("Chatbot auto-response failed:", err);
+            });
+        }
+
+        // --- 6. Async AI Scoring Update --- //
         // Fire and forget the scoring mechanism so it doesn't block the webhook response
         analyzeLeadScore(conversation.id, userId).catch(err => {
             console.error("Async AI Scoring failed:", err);
