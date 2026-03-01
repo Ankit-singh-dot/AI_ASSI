@@ -25,6 +25,7 @@ import {
     CheckCircle2,
     XCircle,
     Loader2,
+    Phone,
 } from "lucide-react";
 
 const tabs = [
@@ -108,6 +109,18 @@ const platformMeta: Record<string, { name: string; icon: any; color: string; con
         disconnectedDesc: "Trigger a Make.com Google Maps Scraper",
         fields: [
             { key: "webhookUrl", label: "Make.com Scraper Webhook URL", placeholder: "https://hook.eu1.make.com/..." },
+        ],
+    },
+    vapi: {
+        name: "VAPI AI Voice",
+        icon: Phone,
+        color: "#6366f1",
+        connectedDesc: "AI Voice Agent connected",
+        disconnectedDesc: "Connect VAPI for AI voice calls to leads",
+        fields: [
+            { key: "apiKey", label: "VAPI API Key", placeholder: "f1052503-xxxx-xxxx-xxxx-xxxxxxxxxxxx" },
+            { key: "assistantId", label: "Assistant ID", placeholder: "ea8135cc-xxxx..." },
+            { key: "phoneNumberId", label: "VAPI Phone Number ID", placeholder: "18c00281-xxxx..." },
         ],
     },
 };
