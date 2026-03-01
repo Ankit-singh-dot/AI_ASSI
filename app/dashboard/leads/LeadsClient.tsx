@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import {
     Search,
     Filter,
@@ -262,11 +263,11 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                 </div>
             </div>
 
-            {/* Add Lead Modal */}
-            {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Add Lead Modal — rendered via portal to escape layout z-index */}
+            {isModalOpen && typeof document !== "undefined" && createPortal(
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-                    <div className="w-full max-w-md rounded-2xl p-6 space-y-4" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
+                    <div className="relative w-full max-w-md rounded-2xl p-6 space-y-4" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-subtle)" }}>
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-white">New Lead</h2>
                             <button onClick={() => setIsModalOpen(false)} className="text-zinc-400 hover:text-white">
@@ -323,7 +324,8 @@ export default function LeadsClient({ initialLeads }: { initialLeads: any[] }) {
                             {isCreating ? "Creating..." : "Add Lead"}
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );
