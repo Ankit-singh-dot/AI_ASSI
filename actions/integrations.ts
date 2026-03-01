@@ -14,6 +14,7 @@ const PLATFORMS = [
     { platform: "website_forms", name: "Website Forms", description: "Capture leads from your website using a webhook endpoint" },
     { platform: "make_webhook", name: "Make Automation (Campaigns)", description: "Send leads to a Make.com webhook for bulk emailing" },
     { platform: "make_scraper_webhook", name: "Make Automation (Scraper)", description: "Trigger a Make.com Google Maps Scraper for Local Leads" },
+    { platform: "vapi", name: "VAPI AI Voice", description: "Connect VAPI for AI-powered outbound voice calls to leads" },
 ];
 
 export async function getIntegrations() {
@@ -240,6 +241,32 @@ export async function testIntegration(integrationId: string) {
                 }
             } catch (e: any) {
                 return { success: false, message: `Webhook test failed: ${e.message}` };
+            }
+        }
+
+        case "vapi": {
+            if (!integration.apiKey) return { success: false, message: "No VAPI API key provided" };
+            try {
+                const meta = integration.metadata as any;
+                const assistantId = meta?.assistantId;
+                if (!assistantId) return { success: false, message: "No Assistant ID configured" };
+
+                // Test by fetching the assistant details
+                const res = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
+                    headers: { Authorization: `Bearer ${integration.apiKey}` },
+                });
+                const text = await res.text();
+                if (res.ok) {
+                    let data: any = {};
+                    try { data = JSON.parse(text); } catch { }
+                    return { success: true, message: `VAPI connected ✓ — Assistant "${data.name || assistantId}"` };
+                } else {
+                    let errMsg = text;
+                    try { const parsed = JSON.parse(text); errMsg = parsed?.message || parsed?.error || text; } catch { }
+                    return { success: false, message: `VAPI API error: ${errMsg}` };
+                }
+            } catch (e: any) {
+                return { success: false, message: `VAPI test failed: ${e.message}` };
             }
         }
 
