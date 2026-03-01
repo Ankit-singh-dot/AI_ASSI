@@ -36,7 +36,7 @@ export async function sendWhatsAppText(
     return data;
 }
 
-// --- Send an interactive button message --- //
+
 export async function sendWhatsAppButtons(
     apiKey: string,
     phoneNumberId: string,
