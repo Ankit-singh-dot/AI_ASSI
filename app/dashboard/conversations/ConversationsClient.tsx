@@ -173,9 +173,24 @@ export default function ConversationsClient({ initialConversations, quickReplies
                                 <p className="text-xs text-white/50 flex items-center gap-1">
                                     <PlatformIcon platform={activeConv?.channel || ""} />
                                     via {activeConv?.channel === "whatsapp" ? "WhatsApp" : activeConv?.channel === "website_forms" ? "Website" : "Instagram"}
+                                    {activeConv?.language && (
+                                        <span className="ml-2 text-[10px] bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
+                                            {activeConv.language === "hi" ? "🇮🇳 Hindi" : "🇬🇧 English"}
+                                        </span>
+                                    )}
                                 </p>
                             </div>
                             <div className="flex items-center gap-4">
+                                {activeConv?.botPhase && activeConv.botPhase !== "none" && (
+                                    <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold uppercase tracking-wider ${activeConv.botPhase === "ai_chat" ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" :
+                                            activeConv.botPhase === "language_select" ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
+                                                "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                        }`}>
+                                        {activeConv.botPhase === "ai_chat" ? "🤖 AI Handling" :
+                                            activeConv.botPhase === "language_select" ? "🗣️ Language Select" :
+                                                "👤 Handed Off"}
+                                    </span>
+                                )}
                                 <button onClick={() => {
                                     handleSelectConversation(activeId);
                                 }} className="p-2 hover:bg-white/10 rounded-full text-white/60 transition-colors">
